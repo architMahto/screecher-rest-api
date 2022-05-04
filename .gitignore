@@ -103,3 +103,4 @@ desktop.ini
 .idea
 .iml
 *.sublime-workspace
+_debug_bin

@@ -5,6 +5,7 @@ import (
 
 	"github.com/architMahto/screecher-rest-api/app/clients"
 	"github.com/architMahto/screecher-rest-api/app/handlers"
+	"github.com/architMahto/screecher-rest-api/middleware"
 	"github.com/gorilla/mux"
 )
 
@@ -15,12 +16,21 @@ type ApiRouter struct {
 func InitializeRoutes(router *mux.Router, fileDb *clients.FileDBClient) {
 	apiRouter := ApiRouter{Router: router}
 	userHandler := handlers.NewUserHandler(fileDb)
+	screechHandler := handlers.NewScreechHandler(fileDb)
 
 	// Home Route
 	apiRouter.Get("/", handlers.Home)
 
 	// User Routes
 	apiRouter.Get("/api/users", userHandler.GetAllUsers)
+
+	GetAllScreeches := http.HandlerFunc(screechHandler.GetAllScreeches)
+
+	// Screech Routes
+	router.HandleFunc(
+		"/api/screeches",
+		middleware.ValidateScreechQueryParams(GetAllScreeches),
+	).Methods("GET")
 
 	// 404 Not Found
 	router.NotFoundHandler = http.HandlerFunc(handlers.HandleNotFound)

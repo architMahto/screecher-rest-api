@@ -7,7 +7,7 @@ import (
 	"os"
 
 	"github.com/architMahto/screecher-rest-api/app/clients"
-	"github.com/architMahto/screecher-rest-api/middlewares"
+	"github.com/architMahto/screecher-rest-api/middleware"
 	"github.com/gorilla/mux"
 )
 
@@ -22,7 +22,7 @@ func Run() {
 	InitializeRoutes(router, &fileDbClient)
 
 	logger := log.New(os.Stdout, "", log.LstdFlags)
-	loggingMiddleware := middlewares.NewLoggingMiddleware(logger)
+	loggingMiddleware := middleware.NewLoggingMiddleware(logger)
 
 	router.Use(loggingMiddleware.Func())
 
