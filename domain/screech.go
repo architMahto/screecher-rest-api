@@ -23,9 +23,14 @@ type Screech struct {
 	DateModified time.Time `csv:"date_modified" json:"date_modified"`
 }
 
-func (screech *Screech) Prepare() {
+func (screech *Screech) PrepareForAddition() {
 	screech.Id = 0
 	screech.DateCreated = time.Now()
+	screech.DateModified = time.Now()
+}
+
+func (screech *Screech) PrepareForUpdate(screechId int) {
+	screech.Id = screechId
 	screech.DateModified = time.Now()
 }
 
@@ -55,7 +60,7 @@ type ScreechRepository interface {
 	GetScreechesFromDB(collationConf ScreechCollationConfig) ([]Screech, error)
 	GetScreechFromDb(screechId int) (*Screech, error)
 	AddScreechToDB(screech *Screech) (*Screech, error)
-	// UpdateScreechInDB(screech *Screech) (*Screech, error)
+	UpdateScreechInDB(screech *Screech) (*Screech, error)
 }
 
 type ScreechRepositoryDb struct {
@@ -164,12 +169,9 @@ func (screechRepoDb ScreechRepositoryDb) AddScreechToDB(
 	*Screech,
 	error,
 ) {
-	screeches := []Screech{}
+	screeches, readFileErr := FetchAllScreechesFromDB(screechRepoDb)
 
-	if readFileErr := screechRepoDb.FileDB.ReadFileContents(
-		&screeches,
-		clients.FileReader{},
-	); readFileErr != nil {
+	if readFileErr != nil {
 		return nil, readFileErr
 	}
 
@@ -188,27 +190,34 @@ func (screechRepoDb ScreechRepositoryDb) AddScreechToDB(
 	return screech, nil
 }
 
-// func (screechRepoDb ScreechRepositoryDb) UpdateScreechInDB(
-// 	screech *Screech,
-// ) (
-// 	*Screech,
-// 	error,
-// ) {
-// 	screeches, readFileErr := FetchAllScreechesFromDB(screechRepoDb)
+func (screechRepoDb ScreechRepositoryDb) UpdateScreechInDB(
+	screech *Screech,
+) (
+	*Screech,
+	error,
+) {
+	screeches, readFileErr := FetchAllScreechesFromDB(screechRepoDb)
 
-// 	if readFileErr != nil {
-// 		return nil, readFileErr
-// 	}
+	if readFileErr != nil {
+		return nil, readFileErr
+	}
 
-// 	screechIdx, notFoundErr := FindScreechById(screeches, screech.Id)
-// 	screeches[*screechIdx] = *screech
+	screechIdx, notFoundErr := FindScreechById(screeches, screech.Id)
+	updatedScreech := Screech{
+		Id:           screech.Id,
+		Content:      screech.Content,
+		CreatorId:    screech.CreatorId,
+		DateCreated:  screeches[*screechIdx].DateCreated,
+		DateModified: time.Now(),
+	}
+	screeches[*screechIdx] = updatedScreech
 
-// 	if writeFileError := clients.FileDBClient.UpdateFileContents(
-// 		&screeches,
-// 		clients.FileWriter{},
-// 	); writeFileError != nil {
+	if writeFileErr := screechRepoDb.FileDB.UpdateFileContents(
+		&screeches,
+		clients.FileWriter{},
+	); writeFileErr != nil {
+		return nil, writeFileErr
+	}
 
-// 	}
-
-// 	return screech, notFoundErr
-// }
+	return &updatedScreech, notFoundErr
+}

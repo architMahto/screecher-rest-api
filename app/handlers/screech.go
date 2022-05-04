@@ -24,7 +24,7 @@ func NewScreechHandler(fileDb *clients.FileDBClient) ScreechHandler {
 	return screechHandler
 }
 
-func (screechHandler *ScreechHandler) GetAllScreeches(
+func (screechHandler *ScreechHandler) GetScreeches(
 	res http.ResponseWriter,
 	req *http.Request,
 ) {
@@ -71,15 +71,37 @@ func (screechHandler *ScreechHandler) GetScreechById(
 	utils.WriteSuccessResponse(res, http.StatusOK, user)
 }
 
-func (screechHandler *ScreechHandler) AddScreechToDB(
+func (screechHandler *ScreechHandler) CreateScreech(
 	res http.ResponseWriter,
 	req *http.Request,
 ) {
 	ctxScreech := req.Context().Value(domain.COLLATION_CONF)
 	if screech, ok := ctxScreech.(domain.Screech); ok {
-		// ctxScreech := conf
-
 		screechResult, err := screechHandler.ScreechService.CreateNewScreech(&screech)
+		utils.WriteSuccessResponse(res, http.StatusOK, screechResult)
+
+		if err != nil {
+			unexpectedErr := utils.NewUnexpectedError("There was an unexpected error.")
+			utils.WriteErrorResponse(res, *unexpectedErr)
+			return
+		}
+	} else {
+		unexpectedErr := utils.NewUnexpectedError("There was an unexpected error.")
+		utils.WriteErrorResponse(res, *unexpectedErr)
+		return
+	}
+}
+
+func (screechHandler *ScreechHandler) UpdateScreech(
+	res http.ResponseWriter,
+	req *http.Request,
+) {
+	vars := mux.Vars(req)
+	screechId, _ := strconv.Atoi(vars["screech_id"])
+	ctxScreech := req.Context().Value(domain.COLLATION_CONF)
+	if screech, ok := ctxScreech.(domain.Screech); ok {
+		screech.PrepareForUpdate(screechId)
+		screechResult, err := screechHandler.ScreechService.UpdateScreech(&screech)
 		utils.WriteSuccessResponse(res, http.StatusOK, screechResult)
 
 		if err != nil {

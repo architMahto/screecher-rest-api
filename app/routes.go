@@ -28,13 +28,17 @@ func InitializeRoutes(router *mux.Router, fileDb *clients.FileDBClient) {
 	// Screech Routes
 	apiRouter.Get(
 		"/api/screeches",
-		middleware.ValidateScreechQueryParams(screechHandler.GetAllScreeches),
+		middleware.ValidateScreechQueryParams(screechHandler.GetScreeches),
 	)
 	apiRouter.Post(
 		"/api/screeches",
-		middleware.ValidateScreechBody(screechHandler.AddScreechToDB),
+		middleware.ValidateScreechBody(screechHandler.CreateScreech),
 	)
 	apiRouter.Get("/api/screeches/{screech_id:[0-9]+}", screechHandler.GetScreechById)
+	apiRouter.Put(
+		"/api/screeches/{screech_id:[0-9]+}",
+		middleware.ValidateScreechBody(screechHandler.UpdateScreech),
+	)
 
 	// 404 Not Found
 	router.NotFoundHandler = http.HandlerFunc(handlers.HandleNotFound)

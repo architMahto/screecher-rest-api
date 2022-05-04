@@ -94,7 +94,7 @@ func ValidateScreechBody(next http.HandlerFunc) http.HandlerFunc {
 			return
 		}
 
-		screech.Prepare()
+		screech.PrepareForAddition()
 
 		if validationErr := screech.Validate(); validationErr != nil {
 			validationError := utils.NewValidationError(validationErr.Error())
