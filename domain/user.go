@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/architMahto/screecher-rest-api/app/clients"
+	"golang.org/x/exp/slices"
 )
 
 type User struct {
@@ -20,7 +21,7 @@ type User struct {
 
 type UserRepository interface {
 	GetAllUsersFromDB() ([]User, error)
-	// GetUserFromDb(userId int) (*User, error)
+	GetUserFromDb(userId int) (*User, error)
 }
 
 type UserRepositoryDb struct {
@@ -41,21 +42,21 @@ func (userRepoDb UserRepositoryDb) GetAllUsersFromDB() (
 	return users, err
 }
 
-// func (userRepoDb RepositoryDb[User]) GetUserFromDb(userId int) (
-// 	*User,
-// 	error,
-// ) {
-// 	users := []User{}
-// 	err := userRepoDb.FileDB.ReadFileContents(&users, clients.FileReader{})
+func (userRepoDb UserRepositoryDb) GetUserFromDb(userId int) (
+	*User,
+	error,
+) {
+	users := []User{}
+	err := userRepoDb.FileDB.ReadFileContents(&users, clients.FileReader{})
 
-// 	if err != nil {
-// 		return nil, err
-// 	}
+	if err != nil {
+		return nil, err
+	}
 
-// 	userIdx := slices.IndexFunc(
-// 		users,
-// 		func(user User) bool { return user.Id == userId },
-// 	)
+	userIdx := slices.IndexFunc(
+		users,
+		func(user User) bool { return user.Id == userId },
+	)
 
-// 	return &users[userIdx], err
-// }
+	return &users[userIdx], err
+}

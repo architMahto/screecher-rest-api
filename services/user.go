@@ -6,6 +6,7 @@ import (
 
 type UserService interface {
 	GetAllUsers() ([]domain.User, error)
+	GetUserById(userId int) (*domain.User, error)
 }
 
 type UserServiceHandler struct {
@@ -23,6 +24,19 @@ func (service UserServiceHandler) GetAllUsers() (
 	}
 
 	return users, err
+}
+
+func (service UserServiceHandler) GetUserById(userId int) (
+	*domain.User,
+	error,
+) {
+	user, err := service.UserRepo.GetUserFromDb(userId)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return user, err
 }
 
 func NewUserService(
