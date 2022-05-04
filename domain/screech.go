@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/architMahto/screecher-rest-api/app/clients"
+	"golang.org/x/exp/slices"
 )
 
 type key string
@@ -35,7 +36,8 @@ const (
 )
 
 type ScreechRepository interface {
-	GetAllScreechesFromDB() ([]Screech, error)
+	GetAllScreechesFromDB(collationConf ScreechCollationConfig) ([]Screech, error)
+	GetScreechFromDb(screechId int) (*Screech, error)
 }
 
 type ScreechRepositoryDb struct {
@@ -88,4 +90,28 @@ func (screechRepoDb ScreechRepositoryDb) GetAllScreechesFromDB(
 	start, end := GetPaginatedScreechesIndices(screeches, collationConf)
 
 	return screeches[start:end], err
+}
+
+func (screechRepoDb ScreechRepositoryDb) GetScreechFromDb(
+	screechId int,
+) (
+	*Screech,
+	error,
+) {
+	screeches := []Screech{}
+	err := screechRepoDb.FileDB.ReadFileContents(
+		&screeches,
+		clients.FileReader{},
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	screechIdx := slices.IndexFunc(
+		screeches,
+		func(screech Screech) bool { return screech.Id == screechId },
+	)
+
+	return &screeches[screechIdx], err
 }

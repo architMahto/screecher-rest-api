@@ -48,7 +48,7 @@ func (userHandler *UserHandler) GetUserById(
 	user, err := userHandler.UserService.GetUserById(userId)
 
 	if err != nil && user == nil {
-		notFoundErr := utils.NewNotFoundError("Customer was not found.")
+		notFoundErr := utils.NewNotFoundError("User was not found.")
 		utils.WriteErrorResponse(res, *notFoundErr)
 		return
 	}

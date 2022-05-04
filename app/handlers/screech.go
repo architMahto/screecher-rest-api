@@ -2,11 +2,13 @@ package handlers
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/architMahto/screecher-rest-api/app/clients"
 	"github.com/architMahto/screecher-rest-api/domain"
 	"github.com/architMahto/screecher-rest-api/services"
 	"github.com/architMahto/screecher-rest-api/utils"
+	"github.com/gorilla/mux"
 )
 
 type ScreechHandler struct {
@@ -43,4 +45,28 @@ func (screechHandler *ScreechHandler) GetAllScreeches(
 		utils.WriteErrorResponse(res, *unexpectedErr)
 		return
 	}
+}
+
+func (screechHandler *ScreechHandler) GetScreechById(
+	res http.ResponseWriter,
+	req *http.Request,
+) {
+	vars := mux.Vars(req)
+	screechId, _ := strconv.Atoi(vars["screech_id"])
+
+	user, err := screechHandler.ScreechService.GetScreechById(screechId)
+
+	if err != nil && user == nil {
+		notFoundErr := utils.NewNotFoundError("Screech was not found.")
+		utils.WriteErrorResponse(res, *notFoundErr)
+		return
+	}
+
+	if err != nil {
+		unexpectedErr := utils.NewUnexpectedError("There was an unexpected error.")
+		utils.WriteErrorResponse(res, *unexpectedErr)
+		return
+	}
+
+	utils.WriteSuccessResponse(res, http.StatusOK, user)
 }
