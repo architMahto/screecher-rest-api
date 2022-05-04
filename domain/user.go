@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"errors"
 	"time"
 
 	"github.com/architMahto/screecher-rest-api/app/clients"
@@ -47,10 +48,11 @@ func (userRepoDb UserRepositoryDb) GetUserFromDb(userId int) (
 	error,
 ) {
 	users := []User{}
-	err := userRepoDb.FileDB.ReadFileContents(&users, clients.FileReader{})
-
-	if err != nil {
-		return nil, err
+	if readFileErr := userRepoDb.FileDB.ReadFileContents(
+		&users,
+		clients.FileReader{},
+	); readFileErr != nil {
+		return nil, readFileErr
 	}
 
 	userIdx := slices.IndexFunc(
@@ -58,5 +60,9 @@ func (userRepoDb UserRepositoryDb) GetUserFromDb(userId int) (
 		func(user User) bool { return user.Id == userId },
 	)
 
-	return &users[userIdx], err
+	if userIdx < 0 {
+		return nil, errors.New("User was not found")
+	}
+
+	return &users[userIdx], nil
 }

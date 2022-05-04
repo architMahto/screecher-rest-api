@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"errors"
 	"sort"
 	"time"
 
@@ -99,13 +100,11 @@ func (screechRepoDb ScreechRepositoryDb) GetScreechFromDb(
 	error,
 ) {
 	screeches := []Screech{}
-	err := screechRepoDb.FileDB.ReadFileContents(
+	if readFileErr := screechRepoDb.FileDB.ReadFileContents(
 		&screeches,
 		clients.FileReader{},
-	)
-
-	if err != nil {
-		return nil, err
+	); readFileErr != nil {
+		return nil, readFileErr
 	}
 
 	screechIdx := slices.IndexFunc(
@@ -113,5 +112,9 @@ func (screechRepoDb ScreechRepositoryDb) GetScreechFromDb(
 		func(screech Screech) bool { return screech.Id == screechId },
 	)
 
-	return &screeches[screechIdx], err
+	if screechIdx < 0 {
+		return nil, errors.New("Screech was not found")
+	}
+
+	return &screeches[screechIdx], nil
 }
