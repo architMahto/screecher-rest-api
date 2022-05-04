@@ -29,22 +29,23 @@ func (screechHandler *ScreechHandler) GetScreeches(
 	req *http.Request,
 ) {
 	ctxCollationConf := req.Context().Value(domain.COLLATION_CONF)
-	if conf, ok := ctxCollationConf.(domain.ScreechCollationConfig); ok {
-		collationConf := conf
+	collationConf, ok := ctxCollationConf.(domain.ScreechCollationConfig)
 
-		screeches, err := screechHandler.ScreechService.GetAllScreeches(collationConf)
-		utils.WriteSuccessResponse(res, http.StatusOK, screeches)
-
-		if err != nil {
-			unexpectedErr := utils.NewUnexpectedError("There was an unexpected error.")
-			utils.WriteErrorResponse(res, *unexpectedErr)
-			return
-		}
-	} else {
+	if !ok {
 		unexpectedErr := utils.NewUnexpectedError("There was an unexpected error.")
 		utils.WriteErrorResponse(res, *unexpectedErr)
 		return
 	}
+
+	screeches, err := screechHandler.ScreechService.GetAllScreeches(collationConf)
+
+	if err != nil {
+		unexpectedErr := utils.NewUnexpectedError("There was an unexpected error.")
+		utils.WriteErrorResponse(res, *unexpectedErr)
+		return
+	}
+
+	utils.WriteSuccessResponse(res, http.StatusOK, screeches)
 }
 
 func (screechHandler *ScreechHandler) GetScreechById(
@@ -76,20 +77,23 @@ func (screechHandler *ScreechHandler) CreateScreech(
 	req *http.Request,
 ) {
 	ctxScreech := req.Context().Value(domain.COLLATION_CONF)
-	if screech, ok := ctxScreech.(domain.Screech); ok {
-		screechResult, err := screechHandler.ScreechService.CreateNewScreech(&screech)
-		utils.WriteSuccessResponse(res, http.StatusOK, screechResult)
+	screech, ok := ctxScreech.(domain.Screech)
 
-		if err != nil {
-			unexpectedErr := utils.NewUnexpectedError("There was an unexpected error.")
-			utils.WriteErrorResponse(res, *unexpectedErr)
-			return
-		}
-	} else {
+	if !ok {
 		unexpectedErr := utils.NewUnexpectedError("There was an unexpected error.")
 		utils.WriteErrorResponse(res, *unexpectedErr)
 		return
 	}
+
+	screechResult, err := screechHandler.ScreechService.CreateNewScreech(&screech)
+
+	if err != nil {
+		unexpectedErr := utils.NewUnexpectedError("There was an unexpected error.")
+		utils.WriteErrorResponse(res, *unexpectedErr)
+		return
+	}
+
+	utils.WriteSuccessResponse(res, http.StatusOK, screechResult)
 }
 
 func (screechHandler *ScreechHandler) UpdateScreech(
@@ -99,19 +103,22 @@ func (screechHandler *ScreechHandler) UpdateScreech(
 	vars := mux.Vars(req)
 	screechId, _ := strconv.Atoi(vars["screech_id"])
 	ctxScreech := req.Context().Value(domain.COLLATION_CONF)
-	if screech, ok := ctxScreech.(domain.Screech); ok {
-		screech.PrepareForUpdate(screechId)
-		screechResult, err := screechHandler.ScreechService.UpdateScreech(&screech)
-		utils.WriteSuccessResponse(res, http.StatusOK, screechResult)
+	screech, ok := ctxScreech.(domain.Screech)
 
-		if err != nil {
-			unexpectedErr := utils.NewUnexpectedError("There was an unexpected error.")
-			utils.WriteErrorResponse(res, *unexpectedErr)
-			return
-		}
-	} else {
+	if !ok {
 		unexpectedErr := utils.NewUnexpectedError("There was an unexpected error.")
 		utils.WriteErrorResponse(res, *unexpectedErr)
 		return
 	}
+
+	screech.PrepareForUpdate(screechId)
+	screechResult, err := screechHandler.ScreechService.UpdateScreech(&screech)
+
+	if err != nil {
+		unexpectedErr := utils.NewUnexpectedError("There was an unexpected error.")
+		utils.WriteErrorResponse(res, *unexpectedErr)
+		return
+	}
+
+	utils.WriteSuccessResponse(res, http.StatusOK, screechResult)
 }
