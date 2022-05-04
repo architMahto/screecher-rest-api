@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"sort"
 	"time"
 
 	"github.com/architMahto/screecher-rest-api/app/clients"
@@ -37,6 +38,14 @@ type ScreechRepository interface {
 	GetAllScreechesFromDB() ([]Screech, error)
 }
 
+type ScreechRepositoryDb struct {
+	FileDB *clients.FileDBClient
+}
+
+func NewScreechRepositoryDb(FileDB *clients.FileDBClient) ScreechRepositoryDb {
+	return ScreechRepositoryDb{FileDB}
+}
+
 func GetPaginatedScreechesIndices(
 	screeches []Screech,
 	collationConf ScreechCollationConfig,
@@ -57,7 +66,9 @@ func GetPaginatedScreechesIndices(
 	return start, end
 }
 
-func (screechRepoDb RepositoryDb[Screech]) GetAllScreechesFromDB() (
+func (screechRepoDb ScreechRepositoryDb) GetAllScreechesFromDB(
+	collationConf ScreechCollationConfig,
+) (
 	[]Screech,
 	error,
 ) {
@@ -67,5 +78,14 @@ func (screechRepoDb RepositoryDb[Screech]) GetAllScreechesFromDB() (
 		clients.FileReader{},
 	)
 
-	return screeches, err
+	sort.Slice(screeches, func(i, j int) bool {
+		if collationConf.SortOrderDir == ASC_SORT_ORDER {
+			return screeches[i].DateCreated.Before(screeches[j].DateCreated)
+		}
+		return screeches[i].DateCreated.After(screeches[j].DateCreated)
+	})
+
+	start, end := GetPaginatedScreechesIndices(screeches, collationConf)
+
+	return screeches[start:end], err
 }

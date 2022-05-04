@@ -14,9 +14,7 @@ type UserHandler struct {
 }
 
 func NewUserHandler(fileDb *clients.FileDBClient) UserHandler {
-	userRepositoryDb := domain.RepositoryDb[domain.User]{
-		FileDB: fileDb,
-	}
+	userRepositoryDb := domain.NewUserRepositoryDb(fileDb)
 	userService := services.NewUserService(userRepositoryDb)
 
 	userHandler := UserHandler{userService}

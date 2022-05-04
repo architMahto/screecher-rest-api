@@ -14,17 +14,15 @@ type ScreechHandler struct {
 }
 
 func NewScreechHandler(fileDb *clients.FileDBClient) ScreechHandler {
-	userRepositoryDb := domain.RepositoryDb[domain.Screech]{
-		FileDB: fileDb,
-	}
-	userService := services.NewScreechService(userRepositoryDb)
+	screechRepositoryDb := domain.NewScreechRepositoryDb(fileDb)
+	screechService := services.NewScreechService(screechRepositoryDb)
 
-	userHandler := ScreechHandler{userService}
+	screechHandler := ScreechHandler{screechService}
 
-	return userHandler
+	return screechHandler
 }
 
-func (userHandler *ScreechHandler) GetAllScreeches(
+func (screechHandler *ScreechHandler) GetAllScreeches(
 	res http.ResponseWriter,
 	req *http.Request,
 ) {
@@ -32,7 +30,7 @@ func (userHandler *ScreechHandler) GetAllScreeches(
 	if conf, ok := ctxCollationConf.(domain.ScreechCollationConfig); ok {
 		collationConf := conf
 
-		screeches, err := userHandler.ScreechService.GetAllScreeches(collationConf)
+		screeches, err := screechHandler.ScreechService.GetAllScreeches(collationConf)
 		utils.WriteSuccessResponse(res, http.StatusOK, screeches)
 
 		if err != nil {

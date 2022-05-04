@@ -9,7 +9,7 @@ type UserService interface {
 }
 
 type UserServiceHandler struct {
-	UserRepo domain.RepositoryDb[domain.User]
+	UserRepo domain.UserRepositoryDb
 }
 
 func (service UserServiceHandler) GetAllUsers() (
@@ -26,7 +26,7 @@ func (service UserServiceHandler) GetAllUsers() (
 }
 
 func NewUserService(
-	repo domain.RepositoryDb[domain.User],
+	repo domain.UserRepositoryDb,
 ) UserServiceHandler {
 	return UserServiceHandler{repo}
 }

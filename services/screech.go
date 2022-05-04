@@ -1,8 +1,6 @@
 package services
 
 import (
-	"sort"
-
 	"github.com/architMahto/screecher-rest-api/domain"
 )
 
@@ -14,7 +12,7 @@ type ScreechService interface {
 }
 
 type ScreechServiceHandler struct {
-	ScreechRepo domain.RepositoryDb[domain.Screech]
+	ScreechRepo domain.ScreechRepositoryDb
 }
 
 func (service ScreechServiceHandler) GetAllScreeches(
@@ -23,26 +21,19 @@ func (service ScreechServiceHandler) GetAllScreeches(
 	[]domain.Screech,
 	error,
 ) {
-	screeches, err := service.ScreechRepo.GetAllScreechesFromDB()
+	screeches, err := service.ScreechRepo.GetAllScreechesFromDB(
+		collationConf,
+	)
 
 	if err != nil {
 		return nil, err
 	}
 
-	sort.Slice(screeches, func(i, j int) bool {
-		if collationConf.SortOrderDir == domain.ASC_SORT_ORDER {
-			return screeches[i].DateCreated.Before(screeches[j].DateCreated)
-		}
-		return screeches[i].DateCreated.After(screeches[j].DateCreated)
-	})
-
-	start, end := domain.GetPaginatedScreechesIndices(screeches, collationConf)
-
-	return screeches[start:end], err
+	return screeches, err
 }
 
 func NewScreechService(
-	repo domain.RepositoryDb[domain.Screech],
+	repo domain.ScreechRepositoryDb,
 ) ScreechServiceHandler {
 	return ScreechServiceHandler{repo}
 }

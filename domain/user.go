@@ -23,7 +23,15 @@ type UserRepository interface {
 	// GetUserFromDb(userId int) (*User, error)
 }
 
-func (userRepoDb RepositoryDb[User]) GetAllUsersFromDB() (
+type UserRepositoryDb struct {
+	FileDB *clients.FileDBClient
+}
+
+func NewUserRepositoryDb(FileDB *clients.FileDBClient) UserRepositoryDb {
+	return UserRepositoryDb{FileDB}
+}
+
+func (userRepoDb UserRepositoryDb) GetAllUsersFromDB() (
 	[]User,
 	error,
 ) {
