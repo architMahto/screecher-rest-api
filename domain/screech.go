@@ -52,9 +52,10 @@ const (
 )
 
 type ScreechRepository interface {
-	GetAllScreechesFromDB(collationConf ScreechCollationConfig) ([]Screech, error)
+	GetScreechesFromDB(collationConf ScreechCollationConfig) ([]Screech, error)
 	GetScreechFromDb(screechId int) (*Screech, error)
 	AddScreechToDB(screech *Screech) (*Screech, error)
+	// UpdateScreechInDB(screech *Screech) (*Screech, error)
 }
 
 type ScreechRepositoryDb struct {
@@ -63,6 +64,37 @@ type ScreechRepositoryDb struct {
 
 func NewScreechRepositoryDb(FileDB *clients.FileDBClient) ScreechRepositoryDb {
 	return ScreechRepositoryDb{FileDB}
+}
+
+func FetchAllScreechesFromDB(screechRepoDb ScreechRepositoryDb) (
+	[]Screech,
+	error,
+) {
+	screeches := []Screech{}
+	if readFileErr := screechRepoDb.FileDB.ReadFileContents(
+		&screeches,
+		clients.FileReader{},
+	); readFileErr != nil {
+		return nil, readFileErr
+	}
+
+	return screeches, nil
+}
+
+func FindScreechById(screeches []Screech, screechId int) (
+	*int,
+	error,
+) {
+	screechIdx := slices.IndexFunc(
+		screeches,
+		func(screech Screech) bool { return screech.Id == screechId },
+	)
+
+	if screechIdx < 0 {
+		return nil, errors.New("Screech was not found")
+	}
+
+	return &screechIdx, nil
 }
 
 func GetPaginatedScreechesIndices(
@@ -85,17 +117,17 @@ func GetPaginatedScreechesIndices(
 	return start, end
 }
 
-func (screechRepoDb ScreechRepositoryDb) GetAllScreechesFromDB(
+func (screechRepoDb ScreechRepositoryDb) GetScreechesFromDB(
 	collationConf ScreechCollationConfig,
 ) (
 	[]Screech,
 	error,
 ) {
-	screeches := []Screech{}
-	err := screechRepoDb.FileDB.ReadFileContents(
-		&screeches,
-		clients.FileReader{},
-	)
+	screeches, readFileErr := FetchAllScreechesFromDB(screechRepoDb)
+
+	if readFileErr != nil {
+		return nil, readFileErr
+	}
 
 	sort.Slice(screeches, func(i, j int) bool {
 		if collationConf.SortOrderDir == ASC_SORT_ORDER {
@@ -106,7 +138,7 @@ func (screechRepoDb ScreechRepositoryDb) GetAllScreechesFromDB(
 
 	start, end := GetPaginatedScreechesIndices(screeches, collationConf)
 
-	return screeches[start:end], err
+	return screeches[start:end], nil
 }
 
 func (screechRepoDb ScreechRepositoryDb) GetScreechFromDb(
@@ -115,24 +147,15 @@ func (screechRepoDb ScreechRepositoryDb) GetScreechFromDb(
 	*Screech,
 	error,
 ) {
-	screeches := []Screech{}
-	if readFileErr := screechRepoDb.FileDB.ReadFileContents(
-		&screeches,
-		clients.FileReader{},
-	); readFileErr != nil {
+	screeches, readFileErr := FetchAllScreechesFromDB(screechRepoDb)
+
+	if readFileErr != nil {
 		return nil, readFileErr
 	}
 
-	screechIdx := slices.IndexFunc(
-		screeches,
-		func(screech Screech) bool { return screech.Id == screechId },
-	)
+	screechIdx, notFoundErr := FindScreechById(screeches, screechId)
 
-	if screechIdx < 0 {
-		return nil, errors.New("Screech was not found")
-	}
-
-	return &screeches[screechIdx], nil
+	return &screeches[*screechIdx], notFoundErr
 }
 
 func (screechRepoDb ScreechRepositoryDb) AddScreechToDB(
@@ -164,3 +187,28 @@ func (screechRepoDb ScreechRepositoryDb) AddScreechToDB(
 
 	return screech, nil
 }
+
+// func (screechRepoDb ScreechRepositoryDb) UpdateScreechInDB(
+// 	screech *Screech,
+// ) (
+// 	*Screech,
+// 	error,
+// ) {
+// 	screeches, readFileErr := FetchAllScreechesFromDB(screechRepoDb)
+
+// 	if readFileErr != nil {
+// 		return nil, readFileErr
+// 	}
+
+// 	screechIdx, notFoundErr := FindScreechById(screeches, screech.Id)
+// 	screeches[*screechIdx] = *screech
+
+// 	if writeFileError := clients.FileDBClient.UpdateFileContents(
+// 		&screeches,
+// 		clients.FileWriter{},
+// 	); writeFileError != nil {
+
+// 	}
+
+// 	return screech, notFoundErr
+// }

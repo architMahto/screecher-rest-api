@@ -23,7 +23,7 @@ func (service ScreechServiceHandler) GetAllScreeches(
 	[]domain.Screech,
 	error,
 ) {
-	screeches, err := service.ScreechRepo.GetAllScreechesFromDB(
+	screeches, err := service.ScreechRepo.GetScreechesFromDB(
 		collationConf,
 	)
 
