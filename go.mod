@@ -8,5 +8,6 @@ require (
 	github.com/gorilla/context v1.1.1 // indirect
 	github.com/gorilla/mux v1.8.0 // indirect
 	github.com/joho/godotenv v1.4.0 // indirect
+	golang.org/x/crypto v0.0.0-20220427172511-eb4f295cb31f // indirect
 	golang.org/x/exp v0.0.0-20220428152302-39d4317da171 // indirect
 )
