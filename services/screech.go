@@ -10,6 +10,7 @@ type ScreechService interface {
 		error,
 	)
 	GetScreechById(screechId int) (*domain.Screech, error)
+	CreateNewScreech(screech *domain.Screech) (*domain.Screech, error)
 }
 
 type ScreechServiceHandler struct {
@@ -44,6 +45,19 @@ func (service ScreechServiceHandler) GetScreechById(screechId int) (
 	}
 
 	return screech, err
+}
+
+func (service ScreechServiceHandler) CreateNewScreech(screech *domain.Screech) (
+	*domain.Screech,
+	error,
+) {
+	screechRes, err := service.ScreechRepo.AddScreechToDB(screech)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return screechRes, err
 }
 
 func NewScreechService(

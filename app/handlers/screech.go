@@ -70,3 +70,26 @@ func (screechHandler *ScreechHandler) GetScreechById(
 
 	utils.WriteSuccessResponse(res, http.StatusOK, user)
 }
+
+func (screechHandler *ScreechHandler) AddScreechToDB(
+	res http.ResponseWriter,
+	req *http.Request,
+) {
+	ctxScreech := req.Context().Value(domain.COLLATION_CONF)
+	if screech, ok := ctxScreech.(domain.Screech); ok {
+		// ctxScreech := conf
+
+		screechResult, err := screechHandler.ScreechService.CreateNewScreech(&screech)
+		utils.WriteSuccessResponse(res, http.StatusOK, screechResult)
+
+		if err != nil {
+			unexpectedErr := utils.NewUnexpectedError("There was an unexpected error.")
+			utils.WriteErrorResponse(res, *unexpectedErr)
+			return
+		}
+	} else {
+		unexpectedErr := utils.NewUnexpectedError("There was an unexpected error.")
+		utils.WriteErrorResponse(res, *unexpectedErr)
+		return
+	}
+}

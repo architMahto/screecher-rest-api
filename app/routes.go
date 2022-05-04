@@ -30,6 +30,10 @@ func InitializeRoutes(router *mux.Router, fileDb *clients.FileDBClient) {
 		"/api/screeches",
 		middleware.ValidateScreechQueryParams(screechHandler.GetAllScreeches),
 	)
+	apiRouter.Post(
+		"/api/screeches",
+		middleware.ValidateScreechBody(screechHandler.AddScreechToDB),
+	)
 	apiRouter.Get("/api/screeches/{screech_id:[0-9]+}", screechHandler.GetScreechById)
 
 	// 404 Not Found

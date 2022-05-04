@@ -2,6 +2,8 @@ package middleware
 
 import (
 	"context"
+	"encoding/json"
+	"io/ioutil"
 	"net/http"
 	"strconv"
 
@@ -70,6 +72,37 @@ func ValidateScreechQueryParams(next http.HandlerFunc) http.HandlerFunc {
 		}
 
 		req = req.WithContext(context.WithValue(req.Context(), domain.COLLATION_CONF, collationConf))
+		next.ServeHTTP(res, req)
+	})
+}
+
+func ValidateScreechBody(next http.HandlerFunc) http.HandlerFunc {
+	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		reqBody, readErr := ioutil.ReadAll(req.Body)
+
+		if readErr != nil {
+			validationError := utils.NewValidationError("Issues with input format")
+			utils.WriteErrorResponse(res, *validationError)
+			return
+		}
+
+		screech := domain.Screech{}
+
+		if unmarshalErr := json.Unmarshal(reqBody, &screech); unmarshalErr != nil {
+			unmarshalError := utils.NewValidationError("Issues with input format")
+			utils.WriteErrorResponse(res, *unmarshalError)
+			return
+		}
+
+		screech.Prepare()
+
+		if validationErr := screech.Validate(); validationErr != nil {
+			validationError := utils.NewValidationError(validationErr.Error())
+			utils.WriteErrorResponse(res, *validationError)
+			return
+		}
+
+		req = req.WithContext(context.WithValue(req.Context(), domain.COLLATION_CONF, screech))
 		next.ServeHTTP(res, req)
 	})
 }

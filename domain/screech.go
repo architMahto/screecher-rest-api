@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"errors"
 	"sort"
 	"time"
 
@@ -17,9 +18,23 @@ const (
 type Screech struct {
 	Id           int       `csv:"id" json:"id"`
 	Content      string    `csv:"content" json:"content"`
-	CreatorId    string    `csv:"creator_id" json:"creator_id"`
+	CreatorId    int       `csv:"creator_id" json:"creator_id"`
 	DateCreated  time.Time `csv:"date_created" json:"date_created"`
 	DateModified time.Time `csv:"date_modified" json:"date_modified"`
+}
+
+func (screech *Screech) Prepare() {
+	screech.Id = 0
+	screech.DateCreated = time.Now()
+	screech.DateModified = time.Now()
+}
+
+func (screech *Screech) Validate() error {
+	if len(screech.Content) > 1024 {
+		return errors.New("Screech content is too long")
+	}
+
+	return nil
 }
 
 type ScreechCollationConfig struct {
@@ -29,15 +44,17 @@ type ScreechCollationConfig struct {
 }
 
 const (
-	MIN_PAGE_SIZE   int    = 50
-	MAX_PAGE_SIZE   int    = 500
-	ASC_SORT_ORDER  string = "asc"
-	DESC_SORT_ORDER string = "desc"
+	MIN_PAGE_SIZE      int    = 50
+	MAX_PAGE_SIZE      int    = 500
+	ASC_SORT_ORDER     string = "asc"
+	DESC_SORT_ORDER    string = "desc"
+	MAX_SCREECH_LENGTH int    = 1024
 )
 
 type ScreechRepository interface {
 	GetAllScreechesFromDB(collationConf ScreechCollationConfig) ([]Screech, error)
 	GetScreechFromDb(screechId int) (*Screech, error)
+	AddScreechToDB(screech *Screech) (*Screech, error)
 }
 
 type ScreechRepositoryDb struct {
@@ -114,4 +131,34 @@ func (screechRepoDb ScreechRepositoryDb) GetScreechFromDb(
 	)
 
 	return &screeches[screechIdx], err
+}
+
+func (screechRepoDb ScreechRepositoryDb) AddScreechToDB(
+	screech *Screech,
+) (
+	*Screech,
+	error,
+) {
+	screeches := []Screech{}
+
+	if readFileErr := screechRepoDb.FileDB.ReadFileContents(
+		&screeches,
+		clients.FileReader{},
+	); readFileErr != nil {
+		return nil, readFileErr
+	}
+
+	lastScreech := screeches[len(screeches)-1]
+	screech.Id = lastScreech.Id + 1
+
+	screeches = append(screeches, *screech)
+
+	if writeFileErr := screechRepoDb.FileDB.UpdateFileContents(
+		&screeches,
+		clients.FileWriter{},
+	); writeFileErr != nil {
+		return nil, writeFileErr
+	}
+
+	return screech, nil
 }
