@@ -1,5 +1,5 @@
 BINARY_NAME=main
-GO_TEST_COMMAND=go test ./...
+GO_TEST_COMMAND=go test ./... -v
 GO_TEST_COVERAGE_TARGET_FILE=coverage/coverage.out
 
 clean:
@@ -26,7 +26,7 @@ test:
 	${GO_TEST_COMMAND}
 
 test_with_coverage:
-	${GO_TEST_COMMAND} -v -coverprofile=${GO_TEST_COVERAGE_TARGET_FILE}
+	${GO_TEST_COMMAND} -coverprofile=${GO_TEST_COVERAGE_TARGET_FILE}
 
 pre_test_coverage:
 	rm -rf coverage

@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/architMahto/screecher-rest-api/app/clients"
 	"github.com/architMahto/screecher-rest-api/middlewares"
 	"github.com/gorilla/mux"
 )
@@ -13,8 +14,12 @@ import (
 func Run() {
 	config := GetConfig()
 
+	fileDbClient := clients.FileDBClient{
+		PathToDataDir: config.DataDirPath,
+	}
+
 	router := mux.NewRouter()
-	InitializeRoutes(router)
+	InitializeRoutes(router, &fileDbClient)
 
 	logger := log.New(os.Stdout, "", log.LstdFlags)
 	loggingMiddleware := middlewares.NewLoggingMiddleware(logger)

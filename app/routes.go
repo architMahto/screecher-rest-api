@@ -3,6 +3,7 @@ package app
 import (
 	"net/http"
 
+	"github.com/architMahto/screecher-rest-api/app/clients"
 	"github.com/architMahto/screecher-rest-api/app/handlers"
 	"github.com/gorilla/mux"
 )
@@ -11,11 +12,15 @@ type ApiRouter struct {
 	Router *mux.Router
 }
 
-func InitializeRoutes(router *mux.Router) {
+func InitializeRoutes(router *mux.Router, fileDb *clients.FileDBClient) {
 	apiRouter := ApiRouter{Router: router}
+	userHandler := handlers.NewUserHandler(fileDb)
 
 	// Home Route
 	apiRouter.Get("/", handlers.Home)
+
+	// User Routes
+	apiRouter.Get("/api/users", userHandler.GetAllUsers)
 
 	// 404 Not Found
 	router.NotFoundHandler = http.HandlerFunc(handlers.HandleNotFound)

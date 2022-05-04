@@ -2,7 +2,7 @@
 
 ## Overview
 
-An RESTFul API for Screecher. Screecher is a mock social media platform where user can posts screeches.
+An RESTful API for Screecher. Screecher is a mock social media platform where user can posts screeches.
 
 ## Prerequisites
 
