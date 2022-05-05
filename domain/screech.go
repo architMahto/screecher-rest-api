@@ -76,7 +76,7 @@ func FetchAllScreechesFromDB(screechRepoDb ScreechRepositoryDb) (
 	error,
 ) {
 	screeches := []Screech{}
-	if readFileErr := screechRepoDb.CsvDb.ReadFileContents(
+	if readFileErr := screechRepoDb.CsvDb.ReadCsvContents(
 		&screeches,
 		clients.FileReader{},
 	); readFileErr != nil {
@@ -180,7 +180,7 @@ func (screechRepoDb ScreechRepositoryDb) AddScreechToDB(
 
 	screeches = append(screeches, *screech)
 
-	if writeFileErr := screechRepoDb.CsvDb.UpdateFileContents(
+	if writeFileErr := screechRepoDb.CsvDb.UpdateCsvContents(
 		&screeches,
 		clients.FileWriter{},
 	); writeFileErr != nil {
@@ -212,7 +212,7 @@ func (screechRepoDb ScreechRepositoryDb) UpdateScreechInDB(
 	}
 	screeches[*screechIdx] = updatedScreech
 
-	if writeFileErr := screechRepoDb.CsvDb.UpdateFileContents(
+	if writeFileErr := screechRepoDb.CsvDb.UpdateCsvContents(
 		&screeches,
 		clients.FileWriter{},
 	); writeFileErr != nil {

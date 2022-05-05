@@ -28,7 +28,7 @@ func (fakeFileReader FakeFileReader) ReadFile(filename string) (
 	return []byte(readFileResultStr), nil
 }
 
-func TestReadFileContents(t *testing.T) {
+func TestReadCsvContents(t *testing.T) {
 	testMockReader := MockReader{
 		MockFileReader: FakeFileReader{},
 	}
@@ -36,7 +36,7 @@ func TestReadFileContents(t *testing.T) {
 		PathToDataDir: "../../data",
 	}
 	users := []domain.User{}
-	err := csvDbClient.ReadFileContents(&users, testMockReader.MockFileReader)
+	err := csvDbClient.ReadCsvContents(&users, testMockReader.MockFileReader)
 
 	if err != nil {
 		t.Errorf("An error take place when running this")
@@ -63,7 +63,7 @@ func (fakeFileWriter FakeFileWriter) WriteFile(
 	return nil
 }
 
-func TestFileContents(t *testing.T) {
+func TestUpdateCsvContents(t *testing.T) {
 	testMockWriter := MockWriter{
 		MockFileWriter: FakeFileWriter{},
 	}
@@ -71,7 +71,7 @@ func TestFileContents(t *testing.T) {
 		PathToDataDir: "../../data",
 	}
 	users := []domain.User{}
-	err := csvDbClient.UpdateFileContents(&users, testMockWriter.MockFileWriter)
+	err := csvDbClient.UpdateCsvContents(&users, testMockWriter.MockFileWriter)
 
 	if err != nil {
 		t.Errorf("An error take place when running this")

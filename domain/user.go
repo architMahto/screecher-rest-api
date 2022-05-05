@@ -182,7 +182,7 @@ func FetchAllUsersFromDB(userRepoDb UserRepositoryDb) (
 	error,
 ) {
 	users := []User{}
-	if readFileErr := userRepoDb.CsvDb.ReadFileContents(
+	if readFileErr := userRepoDb.CsvDb.ReadCsvContents(
 		&users,
 		clients.FileReader{},
 	); readFileErr != nil {
@@ -261,7 +261,7 @@ func (userRepoDb UserRepositoryDb) AddUserToDB(user *User) (
 
 	users = append(users, *user)
 
-	if writeFileErr := userRepoDb.CsvDb.UpdateFileContents(
+	if writeFileErr := userRepoDb.CsvDb.UpdateCsvContents(
 		&users,
 		clients.FileWriter{},
 	); writeFileErr != nil {
@@ -303,7 +303,7 @@ func (userRepoDb UserRepositoryDb) UpdateUserInDB(
 
 	users[*userIdx] = updatedUser
 
-	if writeFileErr := userRepoDb.CsvDb.UpdateFileContents(
+	if writeFileErr := userRepoDb.CsvDb.UpdateCsvContents(
 		&users,
 		clients.FileWriter{},
 	); writeFileErr != nil {

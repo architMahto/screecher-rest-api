@@ -12,8 +12,8 @@ import (
 
 type CsvClient interface {
 	GetFilename(dest interface{}) string
-	ReadFileContents(dest interface{}, reader Reader) error
-	UpdateFileContents(dest interface{}, writer Writer) error
+	ReadCsvContents(dest interface{}, reader Reader) error
+	UpdateCsvContents(dest interface{}, writer Writer) error
 }
 
 type CsvDbClient struct {
@@ -29,7 +29,7 @@ func (csvDbClient CsvDbClient) GetFilename(dest interface{}) string {
 	return filename
 }
 
-func (csvDbClient CsvDbClient) ReadFileContents(
+func (csvDbClient CsvDbClient) ReadCsvContents(
 	dest interface{},
 	reader Reader,
 ) error {
@@ -50,7 +50,7 @@ func (csvDbClient CsvDbClient) ReadFileContents(
 	return nil
 }
 
-func (csvDbClient CsvDbClient) UpdateFileContents(
+func (csvDbClient CsvDbClient) UpdateCsvContents(
 	dest interface{},
 	writer Writer,
 ) error {
