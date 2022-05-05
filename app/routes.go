@@ -24,12 +24,16 @@ func InitializeRoutes(router *mux.Router, fileDb *clients.FileDBClient) {
 	// Auth Routers
 	apiRouter.Post(
 		"/api/auth/signup",
-		middleware.ValidateUserBody(userHandler.CreateUser),
+		middleware.ValidateUserCreateReqBody(userHandler.CreateUser),
 	)
 
 	// User Routes
 	apiRouter.Get("/api/users", userHandler.GetAllUsers)
 	apiRouter.Get("/api/users/{user_id:[0-9]+}", userHandler.GetUserById)
+	apiRouter.Put(
+		"/api/users/{user_id:[0-9]+}",
+		middleware.ValidateUserUpdateReqBody(userHandler.UpdateUser),
+	)
 
 	// Screech Routes
 	apiRouter.Get(

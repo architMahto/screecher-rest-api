@@ -99,3 +99,30 @@ func (userHandler *UserHandler) CreateUser(
 
 	utils.WriteSuccessResponse(res, http.StatusOK, userResult)
 }
+
+func (userHandler *UserHandler) UpdateUser(
+	res http.ResponseWriter,
+	req *http.Request,
+) {
+	vars := mux.Vars(req)
+	userId, _ := strconv.Atoi(vars["user_id"])
+	ctxUser := req.Context().Value(domain.COLLATION_CONF)
+	userUpdateBody, ok := ctxUser.(domain.UserUpdateBody)
+
+	if !ok {
+		unexpectedErr := utils.NewUnexpectedError("There was an unexpected error.")
+		utils.WriteErrorResponse(res, *unexpectedErr)
+		return
+	}
+
+	// userUpdateBody["Id"] = userId
+	userResult, err := userHandler.UserService.UpdateUser(userId, userUpdateBody)
+
+	if err != nil {
+		unexpectedErr := utils.NewUnexpectedError("There was an unexpected error.")
+		utils.WriteErrorResponse(res, *unexpectedErr)
+		return
+	}
+
+	utils.WriteSuccessResponse(res, http.StatusOK, userResult)
+}

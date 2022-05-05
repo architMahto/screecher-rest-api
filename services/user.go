@@ -7,7 +7,11 @@ import (
 type UserService interface {
 	GetAllUsers() ([]domain.User, error)
 	GetUserById(userId int) (*domain.User, error)
-	CreateNewUser(*domain.User) (*domain.User, error)
+	CreateNewUser(user *domain.User) (*domain.User, error)
+	UpdateUser(
+		userId int,
+		userUpdateBody domain.UserUpdateBody,
+	) (*domain.User, error)
 }
 
 type UserServiceHandler struct {
@@ -18,7 +22,7 @@ func (service UserServiceHandler) GetAllUsers() (
 	[]domain.User,
 	error,
 ) {
-	users, err := service.UserRepo.GetAllUsersFromDB()
+	users, err := service.UserRepo.GetUsersFromDB()
 
 	if err != nil {
 		return nil, err
@@ -45,6 +49,22 @@ func (service UserServiceHandler) CreateNewUser(user *domain.User) (
 	error,
 ) {
 	userRes, err := service.UserRepo.AddUserToDB(user)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return userRes, err
+}
+
+func (service UserServiceHandler) UpdateUser(
+	userId int,
+	userUpdateBody domain.UserUpdateBody,
+) (
+	*domain.User,
+	error,
+) {
+	userRes, err := service.UserRepo.UpdateUserInDB(userId, userUpdateBody)
 
 	if err != nil {
 		return nil, err

@@ -10,6 +10,10 @@ import (
 	"golang.org/x/exp/slices"
 )
 
+type UserValidation interface {
+	ValidateFields() error
+}
+
 type User struct {
 	Id              int       `csv:"id" json:"id"`
 	FirstName       string    `csv:"first_name" json:"first_name"`
@@ -21,12 +25,55 @@ type User struct {
 	DateModified    time.Time `csv:"date_modified" json:"date_modified"`
 }
 
+type UserUpdateBody map[string]string
+
 func HashPassword(password string) ([]byte, error) {
 	return bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 }
 
 func VerifyPassword(hashedPassword string, password string) error {
 	return bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
+}
+
+func GetTruthyUserFields(userStructValue string, userMapValue string) string {
+	if userMapValue != "" {
+		return userMapValue
+	} else {
+		return userStructValue
+	}
+}
+
+func GetUpdatedUser(
+	foundUser User,
+	userUpdateBody UserUpdateBody,
+) User {
+	updatedUser := User{
+		Id: foundUser.Id,
+		Username: GetTruthyUserFields(
+			foundUser.Username,
+			userUpdateBody["username"],
+		),
+		FirstName: GetTruthyUserFields(
+			foundUser.FirstName,
+			userUpdateBody["first_name"],
+		),
+		LastName: GetTruthyUserFields(
+			foundUser.LastName,
+			userUpdateBody["last_name"],
+		),
+		Password: GetTruthyUserFields(
+			foundUser.Password,
+			userUpdateBody["password"],
+		),
+		ProfileImageURI: GetTruthyUserFields(
+			foundUser.ProfileImageURI,
+			userUpdateBody["profile_image_uri"],
+		),
+		DateCreated:  foundUser.DateCreated,
+		DateModified: time.Now(),
+	}
+
+	return updatedUser
 }
 
 func (usr User) MarshalJSON() ([]byte, error) {
@@ -74,7 +121,7 @@ func (user *User) DoesUsernameExist(users []User) bool {
 	return false
 }
 
-func (user *User) Validate() error {
+func (user *User) ValidateFields() error {
 	if len(user.Username) == 0 ||
 		len(user.FirstName) == 0 ||
 		len(user.LastName) == 0 ||
@@ -88,7 +135,27 @@ func (user *User) Validate() error {
 	if len(user.FirstName) > 100 {
 		return errors.New("first name length is too long")
 	}
-	if len(user.LastName) > 80 {
+	if len(user.LastName) > 100 {
+		return errors.New("last name length is too long")
+	}
+
+	return nil
+}
+
+func (userUpdateBody UserUpdateBody) ValidateFields() error {
+	username := userUpdateBody["Username"]
+	firstName := userUpdateBody["FirstName"]
+	lastName := userUpdateBody["LastName"]
+
+	if len(username) != 0 && len(username) > 80 {
+		return errors.New("username length is too long")
+	}
+
+	if len(firstName) != 0 && len(firstName) > 100 {
+		return errors.New("first name length is too long")
+	}
+
+	if len(lastName) != 0 && len(lastName) > 100 {
 		return errors.New("last name length is too long")
 	}
 
@@ -96,9 +163,10 @@ func (user *User) Validate() error {
 }
 
 type UserRepository interface {
-	GetAllUsersFromDB() ([]User, error)
+	GetUsersFromDB() ([]User, error)
 	GetUserFromDb(userId int) (*User, error)
 	AddUserToDB(user *User) (*User, error)
+	UpdateUserInDB(userId int, userUpdateBody UserUpdateBody) (*User, error)
 }
 
 type UserRepositoryDb struct {
@@ -124,28 +192,10 @@ func FetchAllUsersFromDB(userRepoDb UserRepositoryDb) (
 	return users, nil
 }
 
-func (userRepoDb UserRepositoryDb) GetAllUsersFromDB() (
-	[]User,
+func FindUserById(users []User, userId int) (
+	*int,
 	error,
 ) {
-	users := []User{}
-	err := userRepoDb.FileDB.ReadFileContents(&users, clients.FileReader{})
-
-	return users, err
-}
-
-func (userRepoDb UserRepositoryDb) GetUserFromDb(userId int) (
-	*User,
-	error,
-) {
-	users := []User{}
-	if readFileErr := userRepoDb.FileDB.ReadFileContents(
-		&users,
-		clients.FileReader{},
-	); readFileErr != nil {
-		return nil, readFileErr
-	}
-
 	userIdx := slices.IndexFunc(
 		users,
 		func(user User) bool { return user.Id == userId },
@@ -155,18 +205,48 @@ func (userRepoDb UserRepositoryDb) GetUserFromDb(userId int) (
 		return nil, errors.New("User was not found")
 	}
 
-	return &users[userIdx], nil
+	return &userIdx, nil
+}
+
+func (userRepoDb UserRepositoryDb) GetUsersFromDB() (
+	[]User,
+	error,
+) {
+	users, readFileErr := FetchAllUsersFromDB(userRepoDb)
+
+	if readFileErr != nil {
+		return nil, readFileErr
+	}
+
+	return users, nil
+}
+
+func (userRepoDb UserRepositoryDb) GetUserFromDb(userId int) (
+	*User,
+	error,
+) {
+	users, readFileErr := FetchAllUsersFromDB(userRepoDb)
+
+	if readFileErr != nil {
+		return nil, readFileErr
+	}
+
+	userIdx, notFoundErr := FindUserById(users, userId)
+
+	if notFoundErr != nil {
+		return nil, notFoundErr
+	}
+
+	return &users[*userIdx], nil
 }
 
 func (userRepoDb UserRepositoryDb) AddUserToDB(user *User) (
 	*User,
 	error,
 ) {
-	users := []User{}
-	if readFileErr := userRepoDb.FileDB.ReadFileContents(
-		&users,
-		clients.FileReader{},
-	); readFileErr != nil {
+	users, readFileErr := FetchAllUsersFromDB(userRepoDb)
+
+	if readFileErr != nil {
 		return nil, readFileErr
 	}
 
@@ -189,4 +269,46 @@ func (userRepoDb UserRepositoryDb) AddUserToDB(user *User) (
 	}
 
 	return user, nil
+}
+
+func (userRepoDb UserRepositoryDb) UpdateUserInDB(
+	userId int,
+	userUpdateBody UserUpdateBody,
+) (
+	*User,
+	error,
+) {
+	users, readFileErr := FetchAllUsersFromDB(userRepoDb)
+
+	if readFileErr != nil {
+		return nil, readFileErr
+	}
+
+	userIdx, notFoundErr := FindUserById(users, userId)
+
+	if notFoundErr != nil {
+		return nil, notFoundErr
+	}
+
+	foundUser := users[*userIdx]
+	updatedUser := GetUpdatedUser(foundUser, userUpdateBody)
+
+	hashedPassword, hashedPasswordErr := HashPassword(updatedUser.Password)
+
+	if hashedPasswordErr != nil {
+		return nil, hashedPasswordErr
+	}
+
+	updatedUser.Password = string(hashedPassword)
+
+	users[*userIdx] = updatedUser
+
+	if writeFileErr := userRepoDb.FileDB.UpdateFileContents(
+		&users,
+		clients.FileWriter{},
+	); writeFileErr != nil {
+		return nil, writeFileErr
+	}
+
+	return &updatedUser, nil
 }

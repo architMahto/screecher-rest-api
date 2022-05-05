@@ -107,7 +107,7 @@ func ValidateScreechBody(next http.HandlerFunc) http.HandlerFunc {
 	})
 }
 
-func ValidateUserBody(next http.HandlerFunc) http.HandlerFunc {
+func ValidateUserCreateReqBody(next http.HandlerFunc) http.HandlerFunc {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		reqBody, readErr := ioutil.ReadAll(req.Body)
 
@@ -125,7 +125,7 @@ func ValidateUserBody(next http.HandlerFunc) http.HandlerFunc {
 			return
 		}
 
-		if validationErr := user.Validate(); validationErr != nil {
+		if validationErr := user.ValidateFields(); validationErr != nil {
 			validationErr := utils.NewValidationError(validationErr.Error())
 			utils.WriteErrorResponse(res, *validationErr)
 			return
@@ -138,6 +138,35 @@ func ValidateUserBody(next http.HandlerFunc) http.HandlerFunc {
 		}
 
 		req = req.WithContext(context.WithValue(req.Context(), domain.COLLATION_CONF, user))
+		next.ServeHTTP(res, req)
+	})
+}
+
+func ValidateUserUpdateReqBody(next http.HandlerFunc) http.HandlerFunc {
+	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		reqBody, readErr := ioutil.ReadAll(req.Body)
+
+		if readErr != nil {
+			validationError := utils.NewValidationError("Issues with input format")
+			utils.WriteErrorResponse(res, *validationError)
+			return
+		}
+
+		userUpdateBody := domain.UserUpdateBody{}
+
+		if unmarshalErr := json.Unmarshal(reqBody, &userUpdateBody); unmarshalErr != nil {
+			unmarshalError := utils.NewValidationError("Issues with input format")
+			utils.WriteErrorResponse(res, *unmarshalError)
+			return
+		}
+
+		if validationErr := userUpdateBody.ValidateFields(); validationErr != nil {
+			validationErr := utils.NewValidationError(validationErr.Error())
+			utils.WriteErrorResponse(res, *validationErr)
+			return
+		}
+
+		req = req.WithContext(context.WithValue(req.Context(), domain.COLLATION_CONF, userUpdateBody))
 		next.ServeHTTP(res, req)
 	})
 }
