@@ -46,6 +46,8 @@ func NewSecretToken() string {
 type AuthRepository interface {
 	SignIn(userSignIn UserSignIn) (*Session, error)
 	SignOut(secretToken string) error
+	VerifyTokenInDb(secretToken string) error
+	VerifyUserAuthorization(secretToken string, userId int) error
 }
 
 type AuthRepositoryDb struct {
@@ -102,7 +104,6 @@ func (authRepoDb AuthRepositoryDb) SignIn(userSignIn UserSignIn) (
 	}
 
 	var authObj map[string]SessionInfo
-
 	fileReadErr := authRepoDb.JsonDb.ReadJsonContents(&authObj, clients.FileReader{})
 
 	if fileReadErr != nil {
@@ -133,7 +134,6 @@ func (authRepoDb AuthRepositoryDb) SignIn(userSignIn UserSignIn) (
 
 func (authRepoDb AuthRepositoryDb) SignOut(secretToken string) error {
 	var authObj map[string]SessionInfo
-
 	fileReadErr := authRepoDb.JsonDb.ReadJsonContents(&authObj, clients.FileReader{})
 
 	if fileReadErr != nil {
@@ -147,6 +147,41 @@ func (authRepoDb AuthRepositoryDb) SignOut(secretToken string) error {
 		clients.FileWriter{},
 	); fileWriteErr != nil {
 		return fileWriteErr
+	}
+
+	return nil
+}
+
+func (authRepoDb AuthRepositoryDb) VerifyTokenInDb(secretToken string) error {
+	var authObj map[string]SessionInfo
+	fileReadErr := authRepoDb.JsonDb.ReadJsonContents(&authObj, clients.FileReader{})
+
+	if fileReadErr != nil {
+		return fileReadErr
+	}
+
+	if _, ok := authObj[secretToken]; !ok {
+		return errors.New("user is not logged in")
+	}
+
+	return nil
+}
+
+func (authRepoDb AuthRepositoryDb) VerifyUserAuthorization(
+	secretToken string,
+	userId int,
+) error {
+	var authObj map[string]SessionInfo
+	fileReadErr := authRepoDb.JsonDb.ReadJsonContents(&authObj, clients.FileReader{})
+
+	if fileReadErr != nil {
+		return fileReadErr
+	}
+
+	sessionInfo := authObj[secretToken]
+
+	if sessionInfo.UserId != userId {
+		return errors.New("user is not authorized")
 	}
 
 	return nil

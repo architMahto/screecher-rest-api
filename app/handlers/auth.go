@@ -45,3 +45,20 @@ func (authHandler *AuthHandler) SignIn(
 
 	utils.WriteSuccessResponse(res, http.StatusOK, session)
 }
+
+func (authHandler *AuthHandler) SignOut(
+	res http.ResponseWriter,
+	req *http.Request,
+) {
+	authHeader := req.Header.Get("Authorization")
+
+	err := authHandler.AuthService.SignOut(authHeader)
+
+	if err != nil {
+		unexpectedErr := utils.NewAuthenticationError("User is not authenticated")
+		utils.WriteErrorResponse(res, *unexpectedErr)
+		return
+	}
+
+	utils.WriteSuccessResponse(res, http.StatusOK, "User is logged out")
+}

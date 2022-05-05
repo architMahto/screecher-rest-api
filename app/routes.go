@@ -35,6 +35,10 @@ func InitializeRoutes(
 		"/api/auth/signin",
 		middleware.ValidateUserSignInReqBody(authHandler.SignIn),
 	)
+	apiRouter.Post(
+		"/api/auth/signout",
+		middleware.DoesAuthHeaderExist(authHandler.SignOut),
+	)
 
 	// User Routes
 	apiRouter.Get("/api/users", middleware.DoesAuthHeaderExist(userHandler.GetAllUsers))
