@@ -37,17 +37,21 @@ func InitializeRoutes(
 	)
 	apiRouter.Post(
 		"/api/auth/signout",
-		middleware.DoesAuthHeaderExist(authHandler.SignOut),
+		middleware.IsUserAuthenticated(authHandler, authHandler.SignOut),
 	)
 
 	// User Routes
-	apiRouter.Get("/api/users", middleware.DoesAuthHeaderExist(userHandler.GetAllUsers))
+	apiRouter.Get("/api/users", middleware.IsUserAuthenticated(
+		authHandler,
+		userHandler.GetAllUsers,
+	))
 	apiRouter.Get("/api/users/{user_id:[0-9]+}",
-		middleware.DoesAuthHeaderExist(userHandler.GetUserById),
+		middleware.IsUserAuthenticated(authHandler, userHandler.GetUserById),
 	)
 	apiRouter.Put(
 		"/api/users/{user_id:[0-9]+}",
-		middleware.DoesAuthHeaderExist(
+		middleware.IsUserAuthenticated(
+			authHandler,
 			middleware.ValidateUserUpdateReqBody(userHandler.UpdateUser),
 		),
 	)
@@ -60,13 +64,15 @@ func InitializeRoutes(
 	apiRouter.Get("/api/screeches/{screech_id:[0-9]+}", screechHandler.GetScreechById)
 	apiRouter.Post(
 		"/api/screeches",
-		middleware.DoesAuthHeaderExist(
+		middleware.IsUserAuthenticated(
+			authHandler,
 			middleware.ValidateScreechBody(screechHandler.CreateScreech),
 		),
 	)
 	apiRouter.Put(
 		"/api/screeches/{screech_id:[0-9]+}",
-		middleware.DoesAuthHeaderExist(
+		middleware.IsUserAuthenticated(
+			authHandler,
 			middleware.ValidateScreechBody(screechHandler.UpdateScreech),
 		),
 	)
