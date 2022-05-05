@@ -25,6 +25,11 @@ type User struct {
 	DateModified    time.Time `csv:"date_modified" json:"date_modified"`
 }
 
+type UserSignIn struct {
+	Username string `csv:"username" json:"username"`
+	Password string `csv:"password" json:"password"`
+}
+
 type UserUpdateBody map[string]string
 
 func HashPassword(password string) ([]byte, error) {
@@ -157,6 +162,14 @@ func (userUpdateBody UserUpdateBody) ValidateFields() error {
 
 	if len(lastName) != 0 && len(lastName) > 100 {
 		return errors.New("last name length is too long")
+	}
+
+	return nil
+}
+
+func (userSignIn *UserSignIn) ValidateFields() error {
+	if len(userSignIn.Username) == 0 || len(userSignIn.Password) == 0 {
+		return errors.New("please enter a username and password")
 	}
 
 	return nil

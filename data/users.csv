@@ -7,3 +7,4 @@ id,first_name,last_name,username,password,profile_image,date_created,date_modifi
 6,Roy,Barnes,roy90boy,$2a$10$1ThpEZgplsAP8O88VsL2fevSJTvkHgpViaLeUba8vYxbRnS./fIxK,,2022-05-04T21:54:32.675181711-04:00,2022-05-04T21:54:32.675181819-04:00
 7,Leroy,Jenkins,leroyjenkins19,$2a$10$SqLtDMw32zCjUcLp/NJHh.NjMaq93N.56V57RZgUxxz2EyyRLyQoy,https://picsum.photos/id/1/200/300,2022-05-04T22:16:34.454315913-04:00,2022-05-05T02:24:20.030695723-04:00
 8,Victor,Gendry,vicgendry2000,$2a$10$5aUdR0.UiJVFkBCP4HeWIORToPEqWJmp0IkmpV6JzvPBCOKsLk87m,,2022-05-05T02:44:12.363095499-04:00,2022-05-05T02:44:12.36309562-04:00
+9,Ash,Ketchum,ashketchuym2000,$2a$10$LVmKm.yxM38nYrbODfiMdep8NzdfNaV54wWno8HwJZeCHVqxXu06K,,2022-05-05T07:18:29.0434181-04:00,2022-05-05T07:18:29.043418203-04:00

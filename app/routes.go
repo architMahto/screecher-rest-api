@@ -13,10 +13,15 @@ type ApiRouter struct {
 	Router *mux.Router
 }
 
-func InitializeRoutes(router *mux.Router, csvDb *clients.CsvDbClient) {
+func InitializeRoutes(
+	router *mux.Router,
+	csvDb *clients.CsvDbClient,
+	jsonDb *clients.JsonDbClient,
+) {
 	apiRouter := ApiRouter{Router: router}
 	userHandler := handlers.NewUserHandler(csvDb)
 	screechHandler := handlers.NewScreechHandler(csvDb)
+	authHandler := handlers.NewAuthHandler(csvDb, jsonDb)
 
 	// Home Route
 	apiRouter.Get("/", handlers.Home)
@@ -25,6 +30,10 @@ func InitializeRoutes(router *mux.Router, csvDb *clients.CsvDbClient) {
 	apiRouter.Post(
 		"/api/auth/signup",
 		middleware.ValidateUserCreateReqBody(userHandler.CreateUser),
+	)
+	apiRouter.Post(
+		"/api/auth/signin",
+		middleware.ValidateUserSignInReqBody(authHandler.SignIn),
 	)
 
 	// User Routes

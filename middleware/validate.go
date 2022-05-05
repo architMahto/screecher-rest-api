@@ -170,3 +170,32 @@ func ValidateUserUpdateReqBody(next http.HandlerFunc) http.HandlerFunc {
 		next.ServeHTTP(res, req)
 	})
 }
+
+func ValidateUserSignInReqBody(next http.HandlerFunc) http.HandlerFunc {
+	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		reqBody, readErr := ioutil.ReadAll(req.Body)
+
+		if readErr != nil {
+			validationError := utils.NewValidationError("Issues with input format")
+			utils.WriteErrorResponse(res, *validationError)
+			return
+		}
+
+		userSignIn := domain.UserSignIn{}
+
+		if unmarshalErr := json.Unmarshal(reqBody, &userSignIn); unmarshalErr != nil {
+			unmarshalError := utils.NewValidationError("Issues with input format")
+			utils.WriteErrorResponse(res, *unmarshalError)
+			return
+		}
+
+		if validationErr := userSignIn.ValidateFields(); validationErr != nil {
+			validationErr := utils.NewValidationError(validationErr.Error())
+			utils.WriteErrorResponse(res, *validationErr)
+			return
+		}
+
+		req = req.WithContext(context.WithValue(req.Context(), domain.COLLATION_CONF, userSignIn))
+		next.ServeHTTP(res, req)
+	})
+}

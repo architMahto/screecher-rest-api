@@ -17,9 +17,12 @@ func Run() {
 	csvDbClient := clients.CsvDbClient{
 		PathToDataDir: config.DataDirPath,
 	}
+	jsonDbClient := clients.JsonDbClient{
+		PathToDataDir: config.DataDirPath,
+	}
 
 	router := mux.NewRouter()
-	InitializeRoutes(router, &csvDbClient)
+	InitializeRoutes(router, &csvDbClient, &jsonDbClient)
 
 	logger := log.New(os.Stdout, "", log.LstdFlags)
 	loggingMiddleware := middleware.NewLoggingMiddleware(logger)
