@@ -61,3 +61,41 @@ func (userHandler *UserHandler) GetUserById(
 
 	utils.WriteSuccessResponse(res, http.StatusOK, user)
 }
+
+func (userHandler *UserHandler) CreateUser(
+	res http.ResponseWriter,
+	req *http.Request,
+) {
+	ctxUser := req.Context().Value(domain.COLLATION_CONF)
+	user, ok := ctxUser.(domain.User)
+
+	if !ok {
+		unexpectedErr := utils.NewUnexpectedError("There was an unexpected error.")
+		utils.WriteErrorResponse(res, *unexpectedErr)
+		return
+	}
+
+	users, fetchUsersErr := userHandler.UserService.GetAllUsers()
+
+	if fetchUsersErr != nil {
+		unexpectedErr := utils.NewUnexpectedError("There was an unexpected error.")
+		utils.WriteErrorResponse(res, *unexpectedErr)
+		return
+	}
+
+	if userExistsErr := user.DoesUsernameExist(users); userExistsErr {
+		userExistsErr := utils.NewConflictError("User with username already exists.")
+		utils.WriteErrorResponse(res, *userExistsErr)
+		return
+	}
+
+	userResult, err := userHandler.UserService.CreateNewUser(&user)
+
+	if err != nil {
+		unexpectedErr := utils.NewUnexpectedError("There was an unexpected error.")
+		utils.WriteErrorResponse(res, *unexpectedErr)
+		return
+	}
+
+	utils.WriteSuccessResponse(res, http.StatusOK, userResult)
+}

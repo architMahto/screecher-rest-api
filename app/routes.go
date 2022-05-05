@@ -21,6 +21,12 @@ func InitializeRoutes(router *mux.Router, fileDb *clients.FileDBClient) {
 	// Home Route
 	apiRouter.Get("/", handlers.Home)
 
+	// Auth Routers
+	apiRouter.Post(
+		"/api/auth/signup",
+		middleware.ValidateUserBody(userHandler.CreateUser),
+	)
+
 	// User Routes
 	apiRouter.Get("/api/users", userHandler.GetAllUsers)
 	apiRouter.Get("/api/users/{user_id:[0-9]+}", userHandler.GetUserById)

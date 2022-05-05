@@ -106,3 +106,38 @@ func ValidateScreechBody(next http.HandlerFunc) http.HandlerFunc {
 		next.ServeHTTP(res, req)
 	})
 }
+
+func ValidateUserBody(next http.HandlerFunc) http.HandlerFunc {
+	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		reqBody, readErr := ioutil.ReadAll(req.Body)
+
+		if readErr != nil {
+			validationError := utils.NewValidationError("Issues with input format")
+			utils.WriteErrorResponse(res, *validationError)
+			return
+		}
+
+		user := domain.User{}
+
+		if unmarshalErr := json.Unmarshal(reqBody, &user); unmarshalErr != nil {
+			unmarshalError := utils.NewValidationError("Issues with input format")
+			utils.WriteErrorResponse(res, *unmarshalError)
+			return
+		}
+
+		if validationErr := user.Validate(); validationErr != nil {
+			validationErr := utils.NewValidationError(validationErr.Error())
+			utils.WriteErrorResponse(res, *validationErr)
+			return
+		}
+
+		if passwordHashErr := user.PrepareForAddition(); passwordHashErr != nil {
+			passwordHashErr := utils.NewUnexpectedError("Unexpected error")
+			utils.WriteErrorResponse(res, *passwordHashErr)
+			return
+		}
+
+		req = req.WithContext(context.WithValue(req.Context(), domain.COLLATION_CONF, user))
+		next.ServeHTTP(res, req)
+	})
+}

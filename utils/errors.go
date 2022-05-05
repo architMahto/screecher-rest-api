@@ -47,3 +47,10 @@ func NewAuthorizationError(message string) *ApiError {
 		Code:    http.StatusForbidden,
 	}
 }
+
+func NewConflictError(message string) *ApiError {
+	return &ApiError{
+		Message: message,
+		Code:    http.StatusConflict,
+	}
+}
