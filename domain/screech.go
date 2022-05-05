@@ -160,6 +160,10 @@ func (screechRepoDb ScreechRepositoryDb) GetScreechFromDb(
 
 	screechIdx, notFoundErr := FindScreechById(screeches, screechId)
 
+	if notFoundErr != nil {
+		return nil, notFoundErr
+	}
+
 	return &screeches[*screechIdx], notFoundErr
 }
 
@@ -203,6 +207,11 @@ func (screechRepoDb ScreechRepositoryDb) UpdateScreechInDB(
 	}
 
 	screechIdx, notFoundErr := FindScreechById(screeches, screech.Id)
+
+	if notFoundErr != nil {
+		return nil, notFoundErr
+	}
+
 	updatedScreech := Screech{
 		Id:           screech.Id,
 		Content:      screech.Content,
