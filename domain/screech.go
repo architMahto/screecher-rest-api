@@ -64,11 +64,11 @@ type ScreechRepository interface {
 }
 
 type ScreechRepositoryDb struct {
-	FileDB *clients.FileDBClient
+	CsvDb *clients.CsvDbClient
 }
 
-func NewScreechRepositoryDb(FileDB *clients.FileDBClient) ScreechRepositoryDb {
-	return ScreechRepositoryDb{FileDB}
+func NewScreechRepositoryDb(CsvDb *clients.CsvDbClient) ScreechRepositoryDb {
+	return ScreechRepositoryDb{CsvDb}
 }
 
 func FetchAllScreechesFromDB(screechRepoDb ScreechRepositoryDb) (
@@ -76,7 +76,7 @@ func FetchAllScreechesFromDB(screechRepoDb ScreechRepositoryDb) (
 	error,
 ) {
 	screeches := []Screech{}
-	if readFileErr := screechRepoDb.FileDB.ReadFileContents(
+	if readFileErr := screechRepoDb.CsvDb.ReadFileContents(
 		&screeches,
 		clients.FileReader{},
 	); readFileErr != nil {
@@ -180,7 +180,7 @@ func (screechRepoDb ScreechRepositoryDb) AddScreechToDB(
 
 	screeches = append(screeches, *screech)
 
-	if writeFileErr := screechRepoDb.FileDB.UpdateFileContents(
+	if writeFileErr := screechRepoDb.CsvDb.UpdateFileContents(
 		&screeches,
 		clients.FileWriter{},
 	); writeFileErr != nil {
@@ -212,7 +212,7 @@ func (screechRepoDb ScreechRepositoryDb) UpdateScreechInDB(
 	}
 	screeches[*screechIdx] = updatedScreech
 
-	if writeFileErr := screechRepoDb.FileDB.UpdateFileContents(
+	if writeFileErr := screechRepoDb.CsvDb.UpdateFileContents(
 		&screeches,
 		clients.FileWriter{},
 	); writeFileErr != nil {

@@ -13,10 +13,10 @@ type ApiRouter struct {
 	Router *mux.Router
 }
 
-func InitializeRoutes(router *mux.Router, fileDb *clients.FileDBClient) {
+func InitializeRoutes(router *mux.Router, csvDb *clients.CsvDbClient) {
 	apiRouter := ApiRouter{Router: router}
-	userHandler := handlers.NewUserHandler(fileDb)
-	screechHandler := handlers.NewScreechHandler(fileDb)
+	userHandler := handlers.NewUserHandler(csvDb)
+	screechHandler := handlers.NewScreechHandler(csvDb)
 
 	// Home Route
 	apiRouter.Get("/", handlers.Home)

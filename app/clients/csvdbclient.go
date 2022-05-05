@@ -2,7 +2,6 @@ package clients
 
 import (
 	"io/fs"
-	"io/ioutil"
 	"os"
 	"reflect"
 	"strings"
@@ -11,54 +10,30 @@ import (
 	"github.com/gocarina/gocsv"
 )
 
-type Reader interface {
-	ReadFile(filename string) ([]byte, error)
-}
-
-type FileReader struct{}
-
-func (reader FileReader) ReadFile(filename string) ([]byte, error) {
-	return ioutil.ReadFile(filename)
-}
-
-type Writer interface {
-	WriteFile(filename string, data []byte, perm os.FileMode) error
-}
-
-type FileWriter struct{}
-
-func (writer FileWriter) WriteFile(
-	filename string,
-	data []byte,
-	perm os.FileMode,
-) error {
-	return ioutil.WriteFile(filename, data, perm)
-}
-
-type FileClient interface {
+type CsvClient interface {
 	GetFilename(dest interface{}) string
 	ReadFileContents(dest interface{}, reader Reader) error
 	UpdateFileContents(dest interface{}, writer Writer) error
 }
 
-type FileDBClient struct {
+type CsvDbClient struct {
 	PathToDataDir string
 }
 
-func (fileDBClient FileDBClient) GetFilename(dest interface{}) string {
+func (csvDbClient CsvDbClient) GetFilename(dest interface{}) string {
 	tableType := strings.Split(reflect.TypeOf(dest).String(), ".")[1]
 	pluralize := pluralize.NewClient()
 	tableName := pluralize.Plural(strings.ToLower(tableType))
-	filename := fileDBClient.PathToDataDir + "/" + tableName + ".csv"
+	filename := csvDbClient.PathToDataDir + "/" + tableName + ".csv"
 
 	return filename
 }
 
-func (fileDBClient FileDBClient) ReadFileContents(
+func (csvDbClient CsvDbClient) ReadFileContents(
 	dest interface{},
 	reader Reader,
 ) error {
-	filePath := fileDBClient.GetFilename(dest)
+	filePath := csvDbClient.GetFilename(dest)
 
 	data, readFileErr := reader.ReadFile(filePath)
 
@@ -75,11 +50,11 @@ func (fileDBClient FileDBClient) ReadFileContents(
 	return nil
 }
 
-func (fileDBClient FileDBClient) UpdateFileContents(
+func (csvDbClient CsvDbClient) UpdateFileContents(
 	dest interface{},
 	writer Writer,
 ) error {
-	filePath := fileDBClient.GetFilename(dest)
+	filePath := csvDbClient.GetFilename(dest)
 	dataStr, marshalErr := gocsv.MarshalString(dest)
 
 	if marshalErr != nil {

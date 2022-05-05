@@ -170,11 +170,11 @@ type UserRepository interface {
 }
 
 type UserRepositoryDb struct {
-	FileDB *clients.FileDBClient
+	CsvDb *clients.CsvDbClient
 }
 
-func NewUserRepositoryDb(FileDB *clients.FileDBClient) UserRepositoryDb {
-	return UserRepositoryDb{FileDB}
+func NewUserRepositoryDb(CsvDb *clients.CsvDbClient) UserRepositoryDb {
+	return UserRepositoryDb{CsvDb}
 }
 
 func FetchAllUsersFromDB(userRepoDb UserRepositoryDb) (
@@ -182,7 +182,7 @@ func FetchAllUsersFromDB(userRepoDb UserRepositoryDb) (
 	error,
 ) {
 	users := []User{}
-	if readFileErr := userRepoDb.FileDB.ReadFileContents(
+	if readFileErr := userRepoDb.CsvDb.ReadFileContents(
 		&users,
 		clients.FileReader{},
 	); readFileErr != nil {
@@ -261,7 +261,7 @@ func (userRepoDb UserRepositoryDb) AddUserToDB(user *User) (
 
 	users = append(users, *user)
 
-	if writeFileErr := userRepoDb.FileDB.UpdateFileContents(
+	if writeFileErr := userRepoDb.CsvDb.UpdateFileContents(
 		&users,
 		clients.FileWriter{},
 	); writeFileErr != nil {
@@ -303,7 +303,7 @@ func (userRepoDb UserRepositoryDb) UpdateUserInDB(
 
 	users[*userIdx] = updatedUser
 
-	if writeFileErr := userRepoDb.FileDB.UpdateFileContents(
+	if writeFileErr := userRepoDb.CsvDb.UpdateFileContents(
 		&users,
 		clients.FileWriter{},
 	); writeFileErr != nil {

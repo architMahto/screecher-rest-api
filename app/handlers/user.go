@@ -15,8 +15,8 @@ type UserHandler struct {
 	UserService services.UserService
 }
 
-func NewUserHandler(fileDb *clients.FileDBClient) UserHandler {
-	userRepositoryDb := domain.NewUserRepositoryDb(fileDb)
+func NewUserHandler(csvDb *clients.CsvDbClient) UserHandler {
+	userRepositoryDb := domain.NewUserRepositoryDb(csvDb)
 	userService := services.NewUserService(userRepositoryDb)
 
 	userHandler := UserHandler{userService}

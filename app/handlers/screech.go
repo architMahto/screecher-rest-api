@@ -15,8 +15,8 @@ type ScreechHandler struct {
 	ScreechService services.ScreechService
 }
 
-func NewScreechHandler(fileDb *clients.FileDBClient) ScreechHandler {
-	screechRepositoryDb := domain.NewScreechRepositoryDb(fileDb)
+func NewScreechHandler(csvDb *clients.CsvDbClient) ScreechHandler {
+	screechRepositoryDb := domain.NewScreechRepositoryDb(csvDb)
 	screechService := services.NewScreechService(screechRepositoryDb)
 
 	screechHandler := ScreechHandler{screechService}

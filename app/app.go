@@ -14,12 +14,12 @@ import (
 func Run() {
 	config := GetConfig()
 
-	fileDbClient := clients.FileDBClient{
+	csvDbClient := clients.CsvDbClient{
 		PathToDataDir: config.DataDirPath,
 	}
 
 	router := mux.NewRouter()
-	InitializeRoutes(router, &fileDbClient)
+	InitializeRoutes(router, &csvDbClient)
 
 	logger := log.New(os.Stdout, "", log.LstdFlags)
 	loggingMiddleware := middleware.NewLoggingMiddleware(logger)
