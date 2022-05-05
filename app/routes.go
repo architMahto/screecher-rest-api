@@ -37,11 +37,15 @@ func InitializeRoutes(
 	)
 
 	// User Routes
-	apiRouter.Get("/api/users", userHandler.GetAllUsers)
-	apiRouter.Get("/api/users/{user_id:[0-9]+}", userHandler.GetUserById)
+	apiRouter.Get("/api/users", middleware.DoesAuthHeaderExist(userHandler.GetAllUsers))
+	apiRouter.Get("/api/users/{user_id:[0-9]+}",
+		middleware.DoesAuthHeaderExist(userHandler.GetUserById),
+	)
 	apiRouter.Put(
 		"/api/users/{user_id:[0-9]+}",
-		middleware.ValidateUserUpdateReqBody(userHandler.UpdateUser),
+		middleware.DoesAuthHeaderExist(
+			middleware.ValidateUserUpdateReqBody(userHandler.UpdateUser),
+		),
 	)
 
 	// Screech Routes
@@ -49,14 +53,18 @@ func InitializeRoutes(
 		"/api/screeches",
 		middleware.ValidateScreechQueryParams(screechHandler.GetScreeches),
 	)
+	apiRouter.Get("/api/screeches/{screech_id:[0-9]+}", screechHandler.GetScreechById)
 	apiRouter.Post(
 		"/api/screeches",
-		middleware.ValidateScreechBody(screechHandler.CreateScreech),
+		middleware.DoesAuthHeaderExist(
+			middleware.ValidateScreechBody(screechHandler.CreateScreech),
+		),
 	)
-	apiRouter.Get("/api/screeches/{screech_id:[0-9]+}", screechHandler.GetScreechById)
 	apiRouter.Put(
 		"/api/screeches/{screech_id:[0-9]+}",
-		middleware.ValidateScreechBody(screechHandler.UpdateScreech),
+		middleware.DoesAuthHeaderExist(
+			middleware.ValidateScreechBody(screechHandler.UpdateScreech),
+		),
 	)
 
 	// 404 Not Found
